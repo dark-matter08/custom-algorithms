@@ -27,6 +27,7 @@ class HashTable {
 const m = new HashTable(2);
 m.set('a', 1);
 m.set('b', 2);
+// this to test if table size is ensured
 m.set('c', 3);
 console.log(m.table);
 const v = m.get('a');
