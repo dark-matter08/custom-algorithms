@@ -21,14 +21,18 @@ class HashTable {
     const index = this._hash(key);
     const targetItem = this.table[index];
 
-    if (targetItem && targetItem.length) {
-      for (let i = 0; i < targetItem; i++) {
+    if (targetItem) {
+      for (let i = 0; i < targetItem.length; i++) {
         if (targetItem[i][0] === key) {
           targetItem.splice(i, 1);
           this.size--;
-          return true;
         }
       }
+
+      if (targetItem.length < 1) {
+        this.table.splice(index, 1);
+      }
+      return true;
     } else {
       return false;
     }
@@ -161,24 +165,24 @@ class HashTable {
 // Testing it works
 
 const m = new HashTable(10);
-m.set('abc', 1);
-m.set('b', 2);
+m.set('abc', 'hello world');
+m.set('b', 1);
 // this to test if table size is ensured
 m.set('bca', 3);
 m.set(31, 3);
 m.set(13, 3);
+console.log(m.remove(13));
+
 console.log(m.display());
 
 const v = m.get('b');
 console.log(v);
 console.log(m.keys());
 console.log(m.values());
-// console.log(1 == v);
+console.log(1 == v);
 
-m.forEach((key, value) => {
-  console.log(key, value);
-});
+// m.forEach((key, value) => {
+//   console.log(key, value);
+// });
 
-m.map((key, value) => {
-  console.log(key, value);
-});
+// console.log(m);
