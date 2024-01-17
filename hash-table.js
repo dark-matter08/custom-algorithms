@@ -149,7 +149,7 @@ class HashTable {
     for (const chain of this.table) {
       if (chain) {
         for (const [key, value] of chain) {
-          const newIndex = this._hash(key) % newSize;
+          const newIndex = this._hash(key);
           if (!newTable[newIndex]) {
             newTable[newIndex] = [];
           }
