@@ -29,9 +29,6 @@ class HashTable {
         }
       }
 
-      if (targetItem.length < 1) {
-        this.table.splice(index, 1);
-      }
       return true;
     } else {
       return false;

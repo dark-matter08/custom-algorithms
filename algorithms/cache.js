@@ -3,64 +3,40 @@ const fs = require('fs');
 
 class InMemoryCache {
   constructor(maxSize, ttl, strategy, isPersisting) {
-    return new Promise((resolve, reject) => {
-      this.store = new HashTable();
-      this.maxSize =
-        typeof maxSize === 'number' && maxSize > 10 ? maxSize : 127;
-      this.currentSize = 0;
-      this.ttl = typeof ttl === 'number' && ttl > 1000 ? ttl : 60000;
-      this.strategy =
-        strategy === 'LRU' || strategy === 'LFU' ? strategy : 'LRU';
-      this.isPersisting = typeof isPersisting === 'boolean' ? true : false;
-      this.storagePath = './files/cache.json';
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.store = new HashTable();
+        this.maxSize =
+          typeof maxSize === 'number' && maxSize > 10 ? maxSize : 127;
+        this.currentSize = 0;
+        this.ttl = typeof ttl === 'number' && ttl > 1000 ? ttl : 60000;
+        this.strategy =
+          strategy === 'LRU' || strategy === 'LFU' ? strategy : 'LRU';
+        this.isPersisting =
+          typeof isPersisting === 'boolean' && isPersisting ? true : false;
+        this.storagePath = './files/cache.json';
 
-      if (this.isPersisting) {
-        this._loadPersistedData();
+        if (this.isPersisting) {
+          await this._loadPersistedData();
+        }
+
+        resolve(this);
+      } catch (error) {
+        reject(error);
       }
     });
   }
 
-  set(key, value, ttl) {
-    return this._set(key, value, ttl);
+  async set(key, value, ttl) {
+    return await this._set(key, value, ttl);
   }
 
-  get(key) {
-    const item = this.store.get(key);
-
-    if (item) {
-      this._updateFrequency(key);
-    }
-    return item;
+  async get(key) {
+    return await this._get(key);
   }
 
-  delete(key) {
-    return this.store.remove(key);
-  }
-
-  async _set(key, value, ttl) {
-    if (this.currentSize >= this.maxSize) {
-      this._evictItem();
-    }
-
-    const item = {
-      value,
-      createdAt: Date.now(),
-      ttl: ttl ? ttl : this.ttl,
-      frequency: 0,
-    };
-
-    this.store.set(key, item);
-    this.currentSize++;
-
-    if (this.isPersisting) {
-      Atomics.store(this.currentSize, 0, Atomics.load(this.currentSize, 0) + 1);
-      await fs.promises.writeFile(
-        this.storagePath,
-        JSON.stringify(this.store.display()),
-        'utf8',
-        'w'
-      );
-    }
+  async delete(key) {
+    return await this._delete(key);
   }
 
   _timeCleanup() {
@@ -102,6 +78,49 @@ class InMemoryCache {
     this.delete(leastFrequentKey);
   }
 
+  async _delete(key) {
+    this.store.remove(key);
+
+    await this._persistData();
+  }
+
+  async _set(key, value, ttl) {
+    if (this.currentSize >= this.maxSize) {
+      this._evictItem();
+    }
+
+    const item = {
+      value,
+      createdAt: Date.now(),
+      ttl: ttl ? ttl : this.ttl,
+      frequency: 0,
+    };
+
+    this.store.set(key, item);
+    this.currentSize++;
+    await this._persistData();
+  }
+
+  async _get(key) {
+    const item = this.store.get(key);
+
+    if (item) {
+      this._updateFrequency(key);
+    }
+    return item ? item.value : item;
+  }
+
+  async _persistData() {
+    if (this.isPersisting) {
+      await fs.promises.writeFile(
+        this.storagePath,
+        JSON.stringify(this.store.display()),
+        'utf8',
+        'w'
+      );
+    }
+  }
+
   async _loadPersistedData() {
     try {
       const storedData = await fs.promises.readFile(this.storagePath, 'utf8');
@@ -130,6 +149,8 @@ class InMemoryCache {
     if (item) {
       item.frequency = (item.frequency || 0) + 1;
     }
+
+    this._persistData();
   }
 
   async _cleanupExpiredItems() {

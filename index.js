@@ -23,28 +23,25 @@ function testingHashTables() {
 
 async function testingCache() {
   console.log('=============== Testing Cache ==================');
-  const cache = await new InMemoryCache(null, null, null, false);
+  try {
+    const cache = await new InMemoryCache(null, null, null, true);
+    console.log(await cache.get('nice'));
+    cache.set('nice', 'girl boy at 700 hexagon drive', 2000);
+    cache.set('nice2', 'bringing the drip down to size', 3000);
 
-  //   cache.set('nice', 'girl', 2000);
-  //   cache.set('nice2', 'girl', 3000);
-  //   setTimeout(() => {
-  //     cache.set('nice2', 'boy');
-  //   }, 3000);
+    console.log(await cache.get('nice'));
+    console.log(await cache.get('nice2'));
 
-  //   setTimeout(() => {
-  //     console.log(cache.get('nice'));
-  //     console.log(cache.get('nice'));
-  //     console.log(cache.get('nice2'));
-  //     console.log(cache.get('nice2'));
-  //   }, 5000);
-
-  //   setTimeout(() => {
-  //     cache._evictItem();
-  //   }, 20000);
-
-  setTimeout(() => {
-    console.log(cache.get('nice'));
-  }, 3000);
+    //   setTimeout(() => {
+    //     cache._evictItem();
+    //   }, 20000);
+    //   console.log(await cache.get('nice'));
+    //   setTimeout(() => {
+    //     console.log(cache.get('nice'));
+    //   }, 3000);
+  } catch (error) {
+    console.log('Error initializing cache: ', error);
+  }
 }
 
 // testingHashTables();

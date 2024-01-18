@@ -1,10 +1,12 @@
 {
   "name": "custom-algorithms",
   "version": "1.0.0",
-  "description": "My journey throught building my knowledge of algorithms and testing all basic algotithms in the course of learning as JS code",
+  "description": "My journey to build my knowledge of algorithms and testing all basic algorithms in the course of learning as JS code",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "yarn test.js"
+    "test:cache": "node test/cache.spec.js",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC"
