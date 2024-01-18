@@ -23,6 +23,8 @@ class Sorting {
   }
 }
 
+module.exports = { Sorting };
+
 const sorter = new Sorting();
 
 const original = [12, 23, 43, 28, 13];

@@ -1,0 +1,11 @@
+{
+  "name": "custom-algorithms",
+  "version": "1.0.0",
+  "description": "My journey throught building my knowledge of algorithms and testing all basic algotithms in the course of learning as JS code",
+  "main": "index.js",
+  "scripts": {
+    "test": "yarn test.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
