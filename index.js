@@ -24,7 +24,9 @@ function testingHashTables() {
 async function testingCache() {
   console.log('=============== Testing Cache ==================');
   try {
-    const cache = await new InMemoryCache(null, null, null, true);
+    const cache = await new InMemoryCache({
+      isPersisting: true,
+    });
     console.log(await cache.get('nice'));
     cache.set('nice', 'girl boy at 700 hexagon drive', 2000);
     cache.set('nice2', 'bringing the drip down to size', 3000);

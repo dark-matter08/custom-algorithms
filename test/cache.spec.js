@@ -29,6 +29,12 @@ function heading(message) {
   console.log(`\x1b[35m${message}\x1b[0m`);
 }
 
+function sleep(timeout) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeout);
+  });
+}
+
 async function settingValues() {
   info('1. Setting Value', '');
   testCount = testCount + 1;
@@ -89,7 +95,9 @@ async function evictionStrategies() {
   try {
     info('3.1. Evicts the least recently used item (LRU)', '    ');
     testCount = testCount + 2;
-    const cache = await new InMemoryCache(0, 0, 'LRU', false);
+    const cache = await new InMemoryCache({
+      strategy: 'LRU',
+    });
     await cache.set('key1', 'value1');
     await cache.set('key2', 'value2');
 
@@ -118,7 +126,9 @@ async function evictionStrategies() {
   try {
     info('3.2. Evicts the least frequently used item (LFU)', '    ');
     testCount = testCount + 2;
-    const cache = await new InMemoryCache(0, 0, 'LFU', false);
+    const cache = await new InMemoryCache({
+      strategy: 'LFU',
+    });
     await cache.set('key1', 'value1');
     await cache.set('key2', 'value2');
 
@@ -154,7 +164,9 @@ async function persistingValues() {
   testCount = testCount + 2;
   try {
     info('4.1. Saves cached data to a file', '    ');
-    const cache = await new InMemoryCache(0, 0, 'LRU', true);
+    const cache = await new InMemoryCache({
+      isPersisting: true,
+    });
     await cache.set('key4', 'value4');
     await cache.set('key5', 'value5');
     success('', '        ');
@@ -163,14 +175,16 @@ async function persistingValues() {
     failedCount = failedCount + 1;
 
     failed(
-      'Error Writing to memory for persistence' + error.message,
+      'Error Writing to memory for persistence: ' + error.message,
       '        '
     );
   }
 
   try {
     info('4.2. Loads cached data from a file', '    ');
-    const cache = await new InMemoryCache(0, 0, 'LRU', true);
+    const cache = await new InMemoryCache({
+      isPersisting: true,
+    });
     const value4 = await cache.get('key4');
     const value5 = await cache.get('key5');
 
@@ -197,9 +211,9 @@ async function handlingCacheMiss() {
       '5.1. Expecting two cache miss, one not handled and one handled',
       '    '
     );
-    const cache = await new InMemoryCache(0, 0, 'LRU', false);
-    value7 = await cache.get('key7');
-    value8 = await cache.get('key8', () => 'value8');
+    const cache = await new InMemoryCache();
+    const value7 = await cache.get('key7');
+    const value8 = await cache.get('key8', () => 'value8');
 
     if (value7 !== undefined) {
       failedCount = failedCount + 1;
@@ -218,10 +232,50 @@ async function handlingCacheMiss() {
   } catch (error) {
     failedCount = failedCount + 2;
 
-    failed(
-      'Error Writing to memory for persistence' + error.message,
-      '        '
-    );
+    failed('Error handling cache miss: ' + error.message, '        ');
+  }
+}
+
+async function handleEvictStaleItems() {
+  info('6. Evict stale items', '');
+  testCount = testCount + 2;
+  try {
+    info('6.1. Evicting items whose ttl have expired', '    ');
+    const cache = await new InMemoryCache({
+      cleanupInterval: 1000,
+    });
+    await cache.set('key9', 'value9', 2000);
+    value9DuringTTL = await cache.get('key9');
+    await sleep(3000);
+
+    value9AfterTTL = await cache.get('key9');
+
+    cache._clearCleanupInterval();
+
+    if (value9DuringTTL !== 'value9') {
+      failedCount = failedCount + 1;
+      failed('Expecting value at key 7 to be value 9', '        ');
+    } else {
+      passCount = passCount + 1;
+      success('key9 exists during ttl as: ' + value9DuringTTL, '        ');
+    }
+    if (value9AfterTTL !== undefined) {
+      failedCount = failedCount + 1;
+      failed(
+        'Expecting value at key 9 after ttl to be non existent',
+        '        '
+      );
+    } else {
+      passCount = passCount + 1;
+      success(
+        'Value at key 9 was deleted after ttl ' + value9AfterTTL,
+        '        '
+      );
+    }
+  } catch (error) {
+    failedCount = failedCount + 2;
+
+    failed('Error evicting stale items: ' + error.message, '        ');
   }
 }
 
@@ -233,6 +287,7 @@ async function testCache() {
     await evictionStrategies();
     await persistingValues();
     await handlingCacheMiss();
+    await handleEvictStaleItems();
 
     info('=====================================================', '');
     info('=> Total : ' + testCount, '');

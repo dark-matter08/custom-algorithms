@@ -2,22 +2,52 @@ const { HashTable } = require('./hash-table');
 const fs = require('fs');
 
 class InMemoryCache {
-  constructor(maxSize, ttl, strategy, isPersisting) {
+  constructor(options) {
     return new Promise(async (resolve, reject) => {
       try {
         this.store = new HashTable();
         this.maxSize =
-          typeof maxSize === 'number' && maxSize > 10 ? maxSize : 127;
+          options &&
+          options.maxSize &&
+          typeof options.maxSize === 'number' &&
+          options.maxSize > 10
+            ? options.maxSize
+            : 127;
         this.currentSize = 0;
-        this.ttl = typeof ttl === 'number' && ttl > 1000 ? ttl : 60000;
+        this.ttl =
+          options &&
+          options.ttl &&
+          typeof options.ttl === 'number' &&
+          options.ttl > 1000
+            ? options.ttl
+            : 60000;
         this.strategy =
-          strategy === 'LRU' || strategy === 'LFU' ? strategy : 'LRU';
+          options &&
+          options.strategy &&
+          (options.strategy === 'LRU' || options.strategy === 'LFU')
+            ? options.strategy
+            : 'LRU';
         this.isPersisting =
-          typeof isPersisting === 'boolean' && isPersisting ? true : false;
+          options &&
+          options.isPersisting &&
+          typeof options.isPersisting === 'boolean'
+            ? true
+            : false;
         this.storagePath = './files/cache.json';
 
         if (this.isPersisting) {
           await this._loadPersistedData();
+        }
+
+        this.cleanupInterval = null;
+
+        if (
+          options &&
+          options.cleanupInterval &&
+          typeof options.cleanupInterval === 'number' &&
+          options.cleanupInterval > 0
+        ) {
+          this._scheduleCleanup(options.cleanupInterval);
         }
 
         resolve(this);
@@ -45,13 +75,18 @@ class InMemoryCache {
     return await this._delete(key);
   }
 
-  _timeCleanup() {
-    if (!this.cleanupInterval && ttl) {
-      this.cleanupInterval = setTimeout(() => {
-        this._cleanupExpiredItems();
-        this.cleanupInterval = null; // Reset cleanupInterval after running once
-      }, ttl);
+  _clearCleanupInterval() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
     }
+  }
+
+  _scheduleCleanup(interval) {
+    this._clearCleanupInterval();
+
+    this.cleanupInterval = setInterval(() => {
+      this._cleanupExpiredItems();
+    }, interval);
   }
 
   _evictLRU() {
@@ -173,8 +208,9 @@ class InMemoryCache {
 
   async _cleanupExpiredItems() {
     const now = Date.now();
-    this.cache.keys().forEach((key) => {
-      if (this.store.get(key).createdAt + this.store.get(key).ttl < now) {
+    this.store.keys().forEach((key) => {
+      const item = this.store.get(key);
+      if (item.createdAt + item.ttl < now) {
         this.delete(key);
       }
     });
