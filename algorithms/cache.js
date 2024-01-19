@@ -32,7 +32,13 @@ class InMemoryCache {
   }
 
   async get(key, cacheMissCallBack) {
-    return await this._get(key, cacheMissCallBack);
+    const item = await this._get(key);
+
+    if (!item) {
+      return await this._handleCacheMiss(key, cacheMissCallBack);
+    }
+
+    return item;
   }
 
   async delete(key) {
@@ -101,19 +107,25 @@ class InMemoryCache {
     await this._persistData();
   }
 
-  async _get(key, callback) {
+  async _get(key) {
     let item = this.store.get(key);
 
     if (item) {
       this._updateFrequency(key);
-    } else {
-      if (callback) {
-        value = callback();
-        await this.set(key, value);
-        item = this.store.get(key);
-      }
     }
+
     return item ? item.value : item;
+  }
+
+  async _handleCacheMiss(key, callback) {
+    if (callback) {
+      const value = callback();
+
+      await this.set(key, value);
+      return await this._get(key);
+    }
+
+    return undefined;
   }
 
   async _persistData() {

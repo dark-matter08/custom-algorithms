@@ -206,7 +206,7 @@ async function handlingCacheMiss() {
       failed('Expecting value at key 7 to be non existent', '        ');
     } else {
       passCount = passCount + 1;
-      success('', '        ');
+      success('key7 returns undefined', '        ');
     }
     if (value8 !== 'value8') {
       failedCount = failedCount + 1;
