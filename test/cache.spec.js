@@ -18,9 +18,11 @@ function success(message, space) {
 function info(message, space) {
   console.log(space, `\x1b[36m${message}\x1b[0m`);
 }
+
 function infoSuccess(message, space) {
   console.log(space, `\x1b[32m${message}\x1b[0m`);
 }
+
 function infoFailed(message, space) {
   console.log(space, `\x1b[31m${message}\x1b[0m`);
 }
