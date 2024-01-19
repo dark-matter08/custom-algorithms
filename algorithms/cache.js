@@ -31,8 +31,8 @@ class InMemoryCache {
     return await this._set(key, value, ttl);
   }
 
-  async get(key) {
-    return await this._get(key);
+  async get(key, cacheMissCallBack) {
+    return await this._get(key, cacheMissCallBack);
   }
 
   async delete(key) {
@@ -101,11 +101,17 @@ class InMemoryCache {
     await this._persistData();
   }
 
-  async _get(key) {
-    const item = this.store.get(key);
+  async _get(key, callback) {
+    let item = this.store.get(key);
 
     if (item) {
       this._updateFrequency(key);
+    } else {
+      if (callback) {
+        value = callback();
+        await this.set(key, value);
+        item = this.store.get(key);
+      }
     }
     return item ? item.value : item;
   }

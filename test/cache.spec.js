@@ -189,6 +189,42 @@ async function persistingValues() {
   }
 }
 
+async function handlingCacheMiss() {
+  info('5. Handle cache miss', '');
+  testCount = testCount + 2;
+  try {
+    info(
+      '5.1. Expecting two cache miss, one not handled and one handled',
+      '    '
+    );
+    const cache = await new InMemoryCache(0, 0, 'LRU', false);
+    value7 = await cache.get('key7');
+    value8 = await cache.get('key8', () => 'value8');
+
+    if (value7 !== undefined) {
+      failedCount = failedCount + 1;
+      failed('Expecting value at key 7 to be non existent', '        ');
+    } else {
+      passCount = passCount + 1;
+      success('', '        ');
+    }
+    if (value8 !== 'value8') {
+      failedCount = failedCount + 1;
+      failed('An error occurred: ' + value8, '        ');
+    } else {
+      passCount = passCount + 1;
+      success('Key 8, returning: ' + value8, '        ');
+    }
+  } catch (error) {
+    failedCount = failedCount + 2;
+
+    failed(
+      'Error Writing to memory for persistence' + error.message,
+      '        '
+    );
+  }
+}
+
 async function testCache() {
   heading('Testing custom in-memory cache/store');
   try {
@@ -196,6 +232,7 @@ async function testCache() {
     await retrievingValues();
     await evictionStrategies();
     await persistingValues();
+    await handlingCacheMiss();
 
     info('=====================================================', '');
     info('=> Total : ' + testCount, '');
