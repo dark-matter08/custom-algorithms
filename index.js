@@ -35,13 +35,7 @@ async function testingCache() {
     console.log(await cache.get('nice'));
     console.log(await cache.get('nice2'));
 
-    //   setTimeout(() => {
-    //     cache._evictItem();
-    //   }, 20000);
-    //   console.log(await cache.get('nice'));
-    //   setTimeout(() => {
-    //     console.log(cache.get('nice'));
-    //   }, 3000);
+    
   } catch (error) {
     console.log('Error initializing cache: ', error);
   }
