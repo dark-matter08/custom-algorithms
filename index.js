@@ -1,5 +1,6 @@
 const { InMemoryCache } = require('./algorithms/cache');
 const { HashTable } = require('./algorithms/hash-table');
+const { Heap } = require('./algorithms/heap');
 
 function testingHashTables() {
   console.log('=============== Testing HashTable ==================');
@@ -46,5 +47,19 @@ async function testingCache() {
   }
 }
 
+function testingHeap() {
+  const heap = new Heap();
+
+  heap.insert(8);
+  heap.insert(7);
+  heap.insert(11);
+  heap.insert(1);
+  heap.insert(4);
+
+  console.log(heap.root);
+  console.log(heap.arr);
+}
+
 // testingHashTables();
-testingCache();
+// testingCache();
+testingHeap();
