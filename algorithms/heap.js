@@ -1,101 +1,93 @@
-const { Node } = require('./node');
-
+// A class for Min Heap
 class Heap {
-  constructor(type) {
-    this.root = null;
-    this.type = type ? type : 'MIN';
+  // Constructor: Builds a heap from a given array a[] of given size
+  constructor() {
     this.arr = [];
-    this.nodeArr = [];
   }
 
-  parentIndex(i) {
-    return Math.floor((i - 1) / 2);
-  }
-
-  parent(node) {
-    if (node === this.root) {
-      return null; // Root has no parent
-    }
-
-    // Traverse upwards to find the parent
-    let current = this.root;
-    while (current) {
-      if (current.left === node || current.right === node) {
-        return current;
-      }
-      current = node.value < current.value ? current.left : current.right;
-    }
-
-    return null; // Node not found
-  }
   left(i) {
     return 2 * i + 1;
   }
+
   right(i) {
     return 2 * i + 2;
   }
 
-  isEmpty() {
-    return this.root === null;
+  parent(i) {
+    return Math.floor((i - 1) / 2);
   }
 
-  insert(value) {
-    const newNode = new Node(value);
-    if (this.isEmpty()) {
-      this.root = newNode;
-    } else {
-      this.insertNode(this.root, newNode);
-    }
-    this.insertArr(value);
+  getMin() {
+    return this.arr[0];
   }
 
-  insertArr(k) {
+  insert(k) {
     let arr = this.arr;
     arr.push(k);
 
     // Fix the min heap property if it is violated
     let i = arr.length - 1;
-    while (i > 0 && arr[this.parentIndex(i)] > arr[i]) {
-      let p = this.parentIndex(i);
+    this.heapifyUp(i);
+  }
+
+  heapifyUp(i) {
+    let arr = this.arr;
+    while (i > 0 && arr[this.parent(i)] > arr[i]) {
+      let p = this.parent(i);
       [arr[i], arr[p]] = [arr[p], arr[i]];
       i = p;
     }
   }
 
-  insertNode(root, node) {
-    if (node.value < root.value) {
-      // If the node should go to the left subtree:
-      if (root.left === null) {
-        root.left = node;
-      } else {
-        // Recursively insert into the left subtree
-        this.insertNode(root.left, node);
-      }
-    } else {
-      // If the node should go to the right subtree:
-      if (root.right === null) {
-        root.right = node;
-      } else {
-        // Recursively insert into the right subtree
-        this.insertNode(root.right, node);
-      }
-    }
+  // Decreases value of key at index 'i' to new_val.
+  // It is assumed that new_val is smaller than arr[i].
+  decreaseKey(i, new_val) {
+    let arr = this.arr;
+    arr[i] = new_val;
 
-    // Maintain heap property after insertion (similar to heapifyUp in a heap)
-    this.heapifyUp(root);
+    this.heapifyUp(i);
   }
 
-  heapifyUp(node) {
-    let parent = this.parent(node);
-    while (node !== null && parent !== null && node.value < parent.value) {
-      [node.value, parent.value] = [parent.value, node.value];
-      node = parent;
-      parent = this.parent(node);
-      //   console.log(parent);
+  // Method to remove minimum element (or root) from min heap
+  extractMin() {
+    let arr = this.arr;
+    if (arr.length == 1) {
+      return arr.pop();
     }
 
-    console.log(this.root);
-    console.log('==========================');
+    // Store the minimum value, and remove it from heap
+    let res = arr[0];
+    arr[0] = arr[arr.length - 1];
+    console.log(arr);
+    arr.pop();
+    this.MinHeapify(0);
+    return res;
+  }
+
+  // This function deletes key at index i. It first reduced value to minus
+  // infinite, then calls extractMin()
+  deleteKey(i) {
+    this.decreaseKey(i, this.arr[0] - 1);
+    this.extractMin();
+  }
+
+  // A recursive method to heapify a subtree with the root at given index
+  // This method assumes that the subtrees are already heapified
+  MinHeapify(i) {
+    let arr = this.arr;
+    let n = arr.length;
+    if (n === 1) {
+      return;
+    }
+    let l = this.left(i);
+    let r = this.right(i);
+    let smallest = i;
+    if (l < n && arr[l] < arr[i]) smallest = l;
+    if (r < n && arr[r] < arr[smallest]) smallest = r;
+    if (smallest !== i) {
+      [arr[i], arr[smallest]] = [arr[smallest], arr[i]];
+      this.MinHeapify(smallest);
+    }
   }
 }
 

@@ -34,24 +34,44 @@ async function testingCache() {
 
     console.log(await cache.get('nice'));
     console.log(await cache.get('nice2'));
-
-    
   } catch (error) {
     console.log('Error initializing cache: ', error);
   }
 }
 
 function testingHeap() {
-  const heap = new Heap();
+  const h = new Heap();
 
-  heap.insert(8);
-  heap.insert(7);
-  heap.insert(11);
-  heap.insert(1);
-  heap.insert(4);
+  //   h.insert(8);
+  //   h.insert(7);
+  //   h.insert(11);
+  //   h.insert(1);
+  //   h.insert(4);
+  //   h.insert(6);
+  //   h.insert(2);
+  //   h.insert(3);
+  //   h.insert(5);
+  //   h.insert(10);
 
-  console.log(heap.root);
-  console.log(heap.arr);
+  h.insert(3);
+  h.insert(2);
+  h.deleteKey(1);
+  h.insert(15);
+  h.insert(5);
+  h.insert(4);
+  h.insert(45);
+
+  console.log(h.arr);
+  //   console.log(h.extractMin() + ' ');
+  //   console.log(h.arr);
+  console.log(h.getMin() + ' ');
+  console.log(h.arr);
+
+  console.log('==== decrease ops ====');
+  h.decreaseKey(3, 1);
+  console.log(h.arr);
+  console.log(h.extractMin());
+  console.log(h.arr);
 }
 
 // testingHashTables();
